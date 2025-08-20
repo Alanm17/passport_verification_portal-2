@@ -1,6 +1,6 @@
-# React
+# Document Upload & Verification
 
-A modern React-based project utilizing the latest frontend technologies and tools for building responsive web applications.
+Document Upload & Verification 
 
 ## 🚀 Features
 
