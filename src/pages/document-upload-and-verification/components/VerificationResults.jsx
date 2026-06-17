@@ -20,11 +20,11 @@ const VerificationResults = ({ results, onReset, onDownload }) => {
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case 'exact_match': case'match':
+      case 'exact_match': case 'match': case 'pass':
         return 'text-success bg-success/10';
-      case 'close_match': case'partial_match': case'warning':
+      case 'close_match': case 'partial_match': case 'warning': case 'needs_review':
         return 'text-warning bg-warning/10';
-      case 'mismatch': case'missing': case'error':
+      case 'mismatch': case 'missing': case 'error': case 'fail':
         return 'text-error bg-error/10';
       default:
         return 'text-muted-foreground bg-muted/10';
@@ -33,11 +33,11 @@ const VerificationResults = ({ results, onReset, onDownload }) => {
 
   const getStatusIcon = (status) => {
     switch (status?.toLowerCase()) {
-      case 'exact_match': case'match':
+      case 'exact_match': case 'match': case 'pass':
         return 'CheckCircle';
-      case 'close_match': case'partial_match': case'warning':
+      case 'close_match': case 'partial_match': case 'warning': case 'needs_review':
         return 'AlertTriangle';
-      case 'mismatch': case'missing': case'error':
+      case 'mismatch': case 'missing': case 'error': case 'fail':
         return 'XCircle';
       default:
         return 'HelpCircle';
@@ -100,13 +100,31 @@ const VerificationResults = ({ results, onReset, onDownload }) => {
         {isExpanded && (
           <div className="px-4 pb-4 border-t border-border">
             {hasData ? (
-              <div className="space-y-1 mt-4">
-                {Object.entries(data)?.map(([field, fieldData]) => {
-                  if (typeof fieldData === 'object' && fieldData !== null) {
-                    return renderFieldComparison(field, fieldData?.value, fieldData?.status);
-                  }
-                  return renderFieldComparison(field, fieldData, 'unknown');
-                })}
+              <div className="space-y-4 mt-4">
+                {/* Render Comparisons if they exist */}
+                {data.comparisons && Object.keys(data.comparisons).length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold text-foreground mb-2 uppercase tracking-wider">Verification Checks</h4>
+                    <div className="space-y-1">
+                      {Object.entries(data.comparisons).map(([field, comp]) => (
+                        renderFieldComparison(field, comp?.details || "Compared", comp?.status)
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Render Extracted Data */}
+                <div>
+                  <h4 className="text-sm font-semibold text-foreground mb-2 uppercase tracking-wider">Extracted Data</h4>
+                  <div className="space-y-1">
+                    {Object.entries(data.passport_data || data).map(([field, value]) => {
+                      // Skip internal objects
+                      if (['comparisons', 'validation', 'passport_data', 'raw_text'].includes(field)) return null;
+                      if (typeof value === 'object' && value !== null) return null;
+                      return renderFieldComparison(field, value, 'unknown');
+                    })}
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="text-center py-8">
@@ -163,9 +181,9 @@ const VerificationResults = ({ results, onReset, onDownload }) => {
               <Icon name="CheckCircle" size={20} className="text-success" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Exact Matches</p>
+              <p className="text-sm text-muted-foreground">Passed</p>
               <p className="text-2xl font-bold text-foreground">
-                {results?.summary?.exact_matches || 0}
+                {results?.summary?.passed || 0}
               </p>
             </div>
           </div>
@@ -177,9 +195,9 @@ const VerificationResults = ({ results, onReset, onDownload }) => {
               <Icon name="AlertTriangle" size={20} className="text-warning" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Warnings</p>
+              <p className="text-sm text-muted-foreground">Needs Review</p>
               <p className="text-2xl font-bold text-foreground">
-                {results?.summary?.warnings || 0}
+                {results?.summary?.needs_review || 0}
               </p>
             </div>
           </div>
@@ -191,9 +209,9 @@ const VerificationResults = ({ results, onReset, onDownload }) => {
               <Icon name="XCircle" size={20} className="text-error" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Mismatches</p>
+              <p className="text-sm text-muted-foreground">Failed</p>
               <p className="text-2xl font-bold text-foreground">
-                {results?.summary?.mismatches || 0}
+                {results?.summary?.failed || 0}
               </p>
             </div>
           </div>
