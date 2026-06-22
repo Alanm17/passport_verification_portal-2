@@ -3,7 +3,7 @@ import axios from "axios";
 // Create axios instance with base configuration
 const api = axios?.create({
   baseURL: import.meta.env?.VITE_API_BASE_URL || "http://localhost:8000",
-  timeout: 30000, // 30 seconds timeout for file uploads
+  timeout: 180000, // 180 seconds timeout for file uploads and server wake up
   // Remove default Content-Type header to let browser set it automatically for FormData
 });
 
@@ -109,7 +109,7 @@ export const verifyDocuments = async (files, onProgress = null) => {
 export const checkServerHealth = async () => {
   try {
     const response = await api?.get("/health", {
-      timeout: 5000, // 5 seconds timeout for health check
+      timeout: 60000, // 60 seconds timeout to allow the render instance to wake up
     });
     return response?.data;
   } catch (error) {
